@@ -17,30 +17,15 @@ the test vectors
 python3 initialize.py
 ```
 
-## Usage
-### Signature
+## Benchmarking
+### Signing
 
-First generate the base64 encoding of a JSON message, e.g.,
-
-```bash
-echo '{"type":"car", "brand":"bwm", "speed":"120"}' | base64
-```
-Then invoke sign.py with input the calculated base64 string, e.g., 
+Execute the sign script 
 
 ```bash
-python3 sign.py eyJ0eXBlIjoiY2FyIiwgImJyYW5kIjoiYndtIiwgInNwZWVkIjoiMTIwIn0K
+python3 sign.py
 ```
 
-The script outputs two strings
-
-```bash
-W1siL3R5cGUiLCAiY2FyIiwgInk3M3loNXV2Skdybm1TK0hvSlpRSEE9PSJdLCBbIi9icmFuZCIsICJid20iLCAiVXNmcDhEcUVZWm1CVTVUYStlSWdZUT09Il0sIFsiL3NwZWVkIiwgIjEyMCIsICJyU3JlOUlIbkJjc0wzQXFaYTExemxBPT0iXV0= eyJhbGciOiJFUzI1NiJ9..NrBX6KOND5PMUBXWiYz5_i5fhEkhsf485zNg__eGAK-uoHdK3fxi4yFTMsib-hOuqm6FgGrzTIgQbvUoIi-1XQ
-```
-
-The first string (W1siL3R5cGUiLCAiY2FyIiwgInk3M3loNXV2Skdybm1TK0hvSlpRSEE9PSJdLCBbIi9icmFuZCIsICJid20iLCAiVXNmcDhEcUVZWm1CVTVUYStlSWdZUT09Il0sIFsiL3NwZWVkIiwgIjEyMCIsICJyU3JlOUlIbkJjc0wzQXFaYTExemxBPT0iXV0=)
-is the encoded object. The second string (eyJhbGciOiJFUzI1NiJ9..NrBX6KOND5PMUBXWiYz5_i5fhEkhsf485zNg__eGAK-uoHdK3fxi4yFTMsib-hOuqm6FgGrzTIgQbvUoIi-1XQ) is its signature. 
-
-Both string should then be transmitted over the NDN network
 
 ### Selective disclosure
 

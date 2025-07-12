@@ -5,6 +5,18 @@ import hashlib
 from jwcrypto import jwk, jws
 from secrets import token_bytes
 from cryptography.hazmat.primitives import serialization
+import random
+import time
+import os
+
+try:
+    with open("ec_private.pem", "rb") as f:
+        private_pem = f.read()
+    # Create JWK from PEM
+    key = jwk.JWK.from_pem(private_pem)
+except Exception as e:
+    print(f"Error: {e}")
+    sys.exit(1)
 
 def _get_disclosures(json_object, disclosures, prefix):
     if isinstance(json_object, dict):
@@ -27,18 +39,11 @@ def disclosures(json_object):
     claims = _get_disclosures(json_object, [], "")
     return claims
 
-def sign(base64JSON):
+def sign(json_str):
     try:
         # Decode base64 to JSON string
-        json_bytes = base64.b64decode(base64JSON)
-        json_str = json_bytes.decode('utf-8')
         # Parse JSON
         json_object = json.loads(json_str)
-
-        with open("ec_private.pem", "rb") as f:
-            private_pem = f.read()
-        # Create JWK from PEM
-        key = jwk.JWK.from_pem(private_pem)
         
         all_disclosures = disclosures(json_object)
         proof_object = []
@@ -53,18 +58,48 @@ def sign(base64JSON):
         proof.add_signature(key, None,{"alg": "ES256"})
         object_signature= proof.serialize(compact=True)
         header, _, signature = object_signature.split('.')
-        print(base64.b64encode(json.dumps(all_disclosures).encode()).decode(),header+".."+signature)
+        return(base64.b64encode(json.dumps(all_disclosures).encode()).decode(),header+".."+signature)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 sign.py <base64-encoded-json>")
-        sys.exit(1)
+    # Folder containing the JSON files
+    folder_path = './objects'
 
-    base64JSON = sys.argv[1]
-    sign(base64JSON)
+    # Get list of JSON files in the folder
+    files = [f for f in os.listdir(folder_path) if f.endswith('.json')]
+    assert len(files) >= 100, "Not enough JSON files in ./objects folder."
+
+    # Sample 100 random files
+    selected_files = random.sample(files, 100)
+
+    # List to store timing results
+    timings = []
+
+    # Process each selected file
+    for filename in selected_files:
+        with open(os.path.join(folder_path, filename), 'r') as f:
+            json_str = f.read()
+        
+        start_time = time.perf_counter()
+        disclosures,signature = sign(json_str)
+        end_time = time.perf_counter()
+        elapsed_ms = (end_time - start_time) * 1000  # convert to milliseconds
+        timings.append(elapsed_ms)
+        with open(f'./signatures/{filename}', 'w') as f:
+            f.write(disclosures + "\n")
+            f.write(signature + "\n")
+
+    # Calculate statistics
+    min_time = min(timings)
+    max_time = max(timings)
+    avg_time = sum(timings) / len(timings)
+
+    # Output results
+    print(f"Min time: {min_time:.3f} ms")
+    print(f"Max time: {max_time:.3f} ms")
+    print(f"Average time: {avg_time:.3f} ms")
     
 
 if __name__ == "__main__":
